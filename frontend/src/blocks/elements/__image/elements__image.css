@@ -1,0 +1,11 @@
+.elements__image {
+    width: 282px;
+    height: 282px;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px 10px 0px 0px;
+    grid-column: span 2;
+    grid-row: 1;
+}

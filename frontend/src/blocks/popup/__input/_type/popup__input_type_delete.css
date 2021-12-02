@@ -1,0 +1,10 @@
+.popup__input_type_delete {
+    padding: 0;
+    margin: -10px 36px 36px;
+}
+
+@media screen and (max-width: 767px) {
+    .popup__input_type_delete {
+        margin: -10px 22px 22px;
+    }
+}

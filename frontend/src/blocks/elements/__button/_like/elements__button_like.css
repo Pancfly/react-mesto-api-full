@@ -1,0 +1,10 @@
+.elements__button_like {
+    width: 22px;
+    height: 19px;
+    margin: 0;
+    padding: 0;
+    background-image: url(../../../../images/button/vector.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: unset;
+}

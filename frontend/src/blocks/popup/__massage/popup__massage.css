@@ -1,0 +1,15 @@
+.popup__massage {
+  max-width: 358px;
+  margin: 32px 0 60px;
+  font-size: 24px;
+  line-height: 29px;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media screen and (max-width: 767px) {
+  .popup__massage{
+    font-size: 18px;
+    line-height: 22px;
+  }
+}

@@ -1,0 +1,13 @@
+.profile__avatar-overlay {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    border-radius: 50%;
+    grid-column: 1;
+}
+
+@media screen and (max-width: 767px) {
+    .profile__avatar-overlay {
+        grid-row: 1;
+    }
+}

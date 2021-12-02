@@ -1,0 +1,9 @@
+.popup__fullscreen-container {
+    max-width: 75vw;
+    max-height: 75vh;
+    margin: auto;
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}

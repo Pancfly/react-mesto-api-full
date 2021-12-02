@@ -1,0 +1,15 @@
+.elements__element {
+    max-width: 282px;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+    color: #000;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    grid-template-rows: min-content 79px;
+    grid-column-gap: 10px;
+    align-items: center;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
