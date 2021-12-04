@@ -32,17 +32,14 @@ class Auth {
   checkToken(token) {
     return fetch(`${this._url}/users/me`, {
       method: 'GET',
-      headers: {
-        ...this._headers,
-        Authorization: `Bearer ${token}`
-      }
+      headers: { ...this._headers, Authorization: `Bearer ${token}`},
     })
     .then(this._handleOriginalResponse)
   }
 }
 
 const auth = new Auth({
-  url: 'https://api.pancfly.students.nomoredomains.icu',
+  url: 'https://api.pancfly.students.nomoredomains.rocks',
   headers: {
     'Content-Type': 'application/json'
   }

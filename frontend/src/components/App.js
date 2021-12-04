@@ -27,9 +27,10 @@ function App() {
   const [loggedIn, setLoggedIn] = React.useState(false);
   const [tooltipStatus, setTooltipStatus] = React.useState(false);
   const [isInfoToolTipOpen, setIsInfoToolTipOpen] = React.useState(false);
-  const [userEmail, setUserEmail] = React.useState('');
-  const [selectedCard, setSelectedCard] = React.useState({ link: '', name: '' });
+  const [userEmail, setUserEmail] = React.useState(null);
+  const [selectedCard, setSelectedCard] = React.useState({});
   const [cards, setCards] = React.useState([]);
+  const [token, setToken] = React.useState('');
   const history = useHistory();
 
   const [isLoadingInitialData, setIsLoadingInitialData] = React.useState(false);
@@ -38,36 +39,32 @@ function App() {
   const [isLoadingAvatarUpdate, setIsLoadingAvatarUpdate] = React.useState(false);
 
   React.useEffect(() => {
-    setIsLoadingInitialData(true);
-    api.getInitialCards()
-      .then(res => {
-        setCards(res)
-      })
-      .catch(err => {
-        console.error(err)
-      })
-      .finally( () => {
-        setIsLoadingInitialData(false);
-      })
-  }, []);
+    if(loggedIn){
+      setIsLoadingInitialData(true);
+      const jwt = localStorage.getItem('twt');
+      api.getInitialData(jwt)
+        .then(res => {
+          const [userData, cardsData] = res;
+          setCurrentUser(userData);
+          setCards(cardsData);
+        })
+        .catch(err => {
+          console.error(err)
+        })
+        .finally( () => {
+          setIsLoadingInitialData(false);
+        })
+    }
+  }, [loggedIn]);
 
-  React.useEffect(() => {
-    api.getUserData()
-      .then(res => {
-        setCurrentUser(res)
-      })
-      .catch((err) => {
-        console.error(err);
-      })
-  }, []);
-
-  React.useEffect(() => {
+  const tokenCheck = React.useCallback(() => {
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
+      setToken(jwt);
       auth.checkToken(jwt)
       .then((res) => {
-        setLoggedIn(true)
-        setUserEmail(res.data.email)
+        setLoggedIn(true);
+        setUserEmail(res.email);
         history.push('/');
       })
       .catch((err) => {
@@ -76,9 +73,13 @@ function App() {
     }
   }, [history]);
 
+  React.useEffect(() => {
+    tokenCheck();
+  }, [tokenCheck])
+
   function handleCardLike(card) {
     const isLiked = card.likes.some(item => item._id === currentUser._id);
-    api.changeLikeCardStatus(card._id, !isLiked)
+    api.changeLikeCardStatus(card._id, !isLiked, token)
       .then((newCard) => {
         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
       })
@@ -89,7 +90,7 @@ function App() {
 
   function handleCardDelete(e) {
     e.preventDefault();
-    api.deleteCard(cardForDelete._id)
+    api.deleteCard(cardForDelete._id, token)
       .then(() => {
         setCards(cards.filter(c => c._id !== cardForDelete._id))
         closeAllPopups()
@@ -101,7 +102,7 @@ function App() {
 
   const handleUpdateUser = (data) => {
     setIsLoadingSetUserInfo(true);
-    api.patchUserData(data)
+    api.patchUserData(data, token)
       .then((res) => {
         setCurrentUser(res)
         closeAllPopups()
@@ -116,7 +117,7 @@ function App() {
 
   const handleUpdateAvatar = (data) => {
     setIsLoadingAvatarUpdate(true);
-    api.patchUserAvatar(data)
+    api.patchUserAvatar(data, token)
       .then((res) => {
         setCurrentUser(res)
         closeAllPopups()
@@ -131,7 +132,7 @@ function App() {
 
   const handleAddPlaceSubmit = (newCard) => {
     setIsLoadingAddPlaceSubmit(true);
-    api.postCard(newCard)
+    api.postCard(newCard, token)
       .then((res) => {
         setCards([res, ...cards]);
         closeAllPopups()
@@ -172,7 +173,7 @@ function App() {
     setIsAddPlacePopupOpen(false);
     setImagePopupOpen(false);
     setIsConfirmPopupOpen(false);
-    setSelectedCard({ link: '', name: '' });
+    setSelectedCard({});
     setIsInfoToolTipOpen(false);
   }
 
@@ -209,8 +210,9 @@ function App() {
   }
 
   const handleLogout = () => {
-    setLoggedIn(true);
+    setLoggedIn(false);
     localStorage.removeItem('jwt');
+    setToken('');
     history.push('/sign-in');
   }
 
@@ -238,23 +240,52 @@ function App() {
           </Route>
 
           <Route path="/sign-in">
-            <Login onLogin={handleLogin} />
+            <Login onLogin={handleLogin} onCheckToken={tokenCheck} />
           </Route>
         </Switch>
 
         <Footer />
 
-        <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} isLoadingData={isLoadingSetUserInfo} isLoadingInitialData={isLoadingInitialData} />
+        <EditProfilePopup
+          isOpen={isEditProfilePopupOpen}
+          onClose={closeAllPopups}
+          onUpdateUser={handleUpdateUser}
+          isLoadingData={isLoadingSetUserInfo}
+          isLoadingInitialData={isLoadingInitialData}
+        />
 
-        <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} isLoadingData={isLoadingAddPlaceSubmit} />
+        <AddPlacePopup
+          isOpen={isAddPlacePopupOpen}
+          onClose={closeAllPopups}
+          onAddPlace={handleAddPlaceSubmit}
+          isLoadingData={isLoadingAddPlaceSubmit}
+        />
 
-        <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} isLoadingData={isLoadingAvatarUpdate} />
+        <EditAvatarPopup
+          isOpen={isEditAvatarPopupOpen}
+          onClose={closeAllPopups}
+          onUpdateAvatar={handleUpdateAvatar}
+          isLoadingData={isLoadingAvatarUpdate}
+        />
 
-        <ConfirmationPopup isOpen={isConfirmPopupOpen} onClose={closeAllPopups} onSubmit={handleCardDelete} />
+        <ConfirmationPopup
+          isOpen={isConfirmPopupOpen}
+          onClose={closeAllPopups}
+          onSubmit={handleCardDelete}
+        />
 
-        <ImagePopup card={selectedCard} isOpen={isImagePopupOpen} onClose={closeAllPopups} />
+        <ImagePopup
+          card={selectedCard}
+          isOpen={isImagePopupOpen}
+          onClose={closeAllPopups}
+        />
 
-        <InfoTooltip name="tooltip" authStatus={tooltipStatus} onClose={closeAllPopups} isOpen={isInfoToolTipOpen} />
+        <InfoTooltip
+          name="tooltip"
+          authStatus={tooltipStatus}
+          onClose={closeAllPopups}
+          isOpen={isInfoToolTipOpen}
+        />
 
       </div>
     </CurrentUserContext.Provider>

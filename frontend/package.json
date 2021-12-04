@@ -1,5 +1,5 @@
 {
-  "name": "mesto-react-auth",
+  "name": "mesto-react",
   "author": {
     "name": "Pancfly",
     "email": "pancfly@gmail.com",
@@ -8,7 +8,6 @@
   "description": "Mesto is an interactive page where users can share photos",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/Pancfly/react-mesto-auth",
   "dependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
