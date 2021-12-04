@@ -80,9 +80,9 @@ class Api {
 }
 
 const api = new Api({
-    url: 'https://mesto.nomoreparties.co/v1/cohort-27',
+    url: 'https://api.pancfly.students.nomoredomains.icu',
     headers: {
-        authorization: '7fb2bc07-35e5-4d0c-9255-6e807e5a66b6',
+        'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
 });

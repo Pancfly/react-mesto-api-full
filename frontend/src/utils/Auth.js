@@ -42,7 +42,7 @@ class Auth {
 }
 
 const auth = new Auth({
-  url: 'https://auth.nomoreparties.co',
+  url: 'https://api.pancfly.students.nomoredomains.icu',
   headers: {
     'Content-Type': 'application/json'
   }
