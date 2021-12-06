@@ -32,6 +32,7 @@ class Auth {
   checkToken(token) {
     return fetch(`${this._url}/users/me`, {
       method: 'GET',
+      credentials: 'include',
       headers: { ...this._headers, Authorization: `Bearer ${token}`},
     })
     .then(this._handleOriginalResponse)
@@ -41,6 +42,7 @@ class Auth {
 const auth = new Auth({
   url: 'https://api.pancfly.students.nomoredomains.rocks',
   headers: {
+    'Accept': 'application/json',
     'Content-Type': 'application/json'
   }
 })

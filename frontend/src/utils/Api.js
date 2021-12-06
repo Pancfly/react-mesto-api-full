@@ -11,30 +11,29 @@ class Api {
         return Promise.reject(`Внимание! Ошибка: ${res.status}`)
     }
 
-    _getInitialCards(token) {
+    getInitialCards() {
         return fetch(`${this._url}/cards`, {
             method: 'GET',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
     }
 
-    _getUserData(token) {
+    getUserData() {
         return fetch(`${this._url}/users/me`, {
             method: 'GET',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
     }
 
-    getInitialData(token) {
-        return Promise.all([this._getUserData(token), this._getInitialCards(token)]);
-    }
-
-    patchUserData(data, token) {
+    patchUserData(data) {
         return fetch(`${this._url}/users/me`, {
             method: 'PATCH',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 name: data.name,
                 about: data.about
@@ -43,10 +42,11 @@ class Api {
         .then(this._getResponse)
     }
 
-    patchUserAvatar(data, token) {
+    patchUserAvatar(data) {
         return fetch(`${this._url}/users/me/avatar`, {
             method: 'PATCH',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 avatar: data.avatar
             })
@@ -54,10 +54,11 @@ class Api {
         .then(this._getResponse);
     }
 
-    postCard(data, token) {
+    postCard(data) {
         return fetch(`${this._url}/cards`, {
             method: 'POST',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 name: data.name,
                 link: data.link
@@ -66,18 +67,20 @@ class Api {
         .then(this._getResponse);
     }
 
-    deleteCard(id, token) {
+    deleteCard(id) {
         return fetch(`${this._url}/cards/${id}`, {
             method: 'DELETE',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
     }
 
-    changeLikeCardStatus(id, isLiked, token) {
+    changeLikeCardStatus(id, isLiked) {
         return fetch(`${this._url}/cards/likes/${id}`, {
             method: isLiked ? 'PUT' : 'DELETE',
-            headers: { ...this._headers, Authorization: `Bearer ${token}` },
+            credentials: 'include',
+            headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
     }

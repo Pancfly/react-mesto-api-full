@@ -1,5 +1,5 @@
-import React from 'react';
-import { Route, Switch, useHistory } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Route, Switch, useHistory, Redirect } from 'react-router-dom';
 import Login from './Login';
 import Register from './Register';
 import Header from './Header';
@@ -17,69 +17,124 @@ import InfoTooltip from './InfoTooltip';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
 
 function App() {
-  const [currentUser, setCurrentUser] = React.useState({});
-  const [cardForDelete, setCardForDelete] = React.useState({})
-  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
-  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
-  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
-  const [isConfirmPopupOpen, setIsConfirmPopupOpen] = React.useState(false);
-  const [isImagePopupOpen, setImagePopupOpen] = React.useState(false);
-  const [loggedIn, setLoggedIn] = React.useState(false);
-  const [tooltipStatus, setTooltipStatus] = React.useState(false);
-  const [isInfoToolTipOpen, setIsInfoToolTipOpen] = React.useState(false);
-  const [userEmail, setUserEmail] = React.useState(null);
-  const [selectedCard, setSelectedCard] = React.useState({});
-  const [cards, setCards] = React.useState([]);
-  const [token, setToken] = React.useState('');
+  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
+  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
+  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
+  const [isConfirmPopupOpen, setIsConfirmPopupOpen] = useState(false);
+  const [isImagePopupOpen, setImagePopupOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState({});
+  const [selectedCard, setSelectedCard] = useState({});
+  const [cards, setCards] = useState([]);
+  const [cardForDelete, setCardForDelete] = useState({})
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
   const history = useHistory();
 
-  const [isLoadingInitialData, setIsLoadingInitialData] = React.useState(false);
-  const [isLoadingSetUserInfo, setIsLoadingSetUserInfo] = React.useState(false);
-  const [isLoadingAddPlaceSubmit, setIsLoadingAddPlaceSubmit] = React.useState(false);
-  const [isLoadingAvatarUpdate, setIsLoadingAvatarUpdate] = React.useState(false);
+  const [tooltipStatus, setTooltipStatus] = useState(false);
+  const [isInfoToolTipOpen, setIsInfoToolTipOpen] = useState(false);
 
-  React.useEffect(() => {
-    if(loggedIn){
-      setIsLoadingInitialData(true);
-      const jwt = localStorage.getItem('twt');
-      api.getInitialData(jwt)
-        .then(res => {
-          const [userData, cardsData] = res;
-          setCurrentUser(userData);
-          setCards(cardsData);
-        })
-        .catch(err => {
-          console.error(err)
-        })
-        .finally( () => {
-          setIsLoadingInitialData(false);
-        })
-    }
-  }, [loggedIn]);
+  const [isLoadingInitialData, setIsLoadingInitialData] = useState(false);
+  const [isLoadingSetUserInfo, setIsLoadingSetUserInfo] = useState(false);
+  const [isLoadingAddPlaceSubmit, setIsLoadingAddPlaceSubmit] = useState(false);
+  const [isLoadingAvatarUpdate, setIsLoadingAvatarUpdate] = useState(false);
 
-  const tokenCheck = React.useCallback(() => {
-    const jwt = localStorage.getItem('jwt');
-    if (jwt) {
-      setToken(jwt);
-      auth.checkToken(jwt)
+  useEffect(() => {
+    tokenCheck()
+  }, []);
+
+  const tokenCheck = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      auth.checkToken(token)
       .then((res) => {
-        setLoggedIn(true);
-        setUserEmail(res.email);
-        history.push('/');
+        if(res.email) {
+          setUserEmail(res.email);
+          setLoggedIn(true);
+          history.push('/');
+        }
       })
       .catch((err) => {
         console.log(err)
       })
     }
-  }, [history]);
+  };
 
-  React.useEffect(() => {
-    tokenCheck();
-  }, [tokenCheck])
+  const handleRegister = (email, password) => {
+    return auth.register(email, password)
+      .then((res) => {
+        if (res.email) {
+          setTooltipStatus(true);
+          setIsInfoToolTipOpen(true);
+          setTimeout(() => {
+            setIsInfoToolTipOpen(false);
+            handleLogin(email, password);
+          }, 1000)
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        setTooltipStatus(false);
+        setIsInfoToolTipOpen(true);
+      });
+  }
+
+  const handleLogin = (email, password) => {
+    return auth.authorize(email, password)
+      .then((res) => {
+        if (res.token) {
+          localStorage.setItem('token', res.token)
+          setUserEmail(email)
+          setLoggedIn(true)
+          history.push('/')
+        }
+      })
+      .catch(err => {
+        console.log(err); 
+      });
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setLoggedIn(false);
+    setUserEmail('');
+    history.push('/sign-in');
+  }
+
+  useEffect(() => {
+    if(loggedIn){
+      setIsLoadingSetUserInfo(true);
+      api.getUserData()
+        .then(userData => {
+          setCurrentUser(userData);
+        })
+        .catch(err => {
+          console.error(err)
+        })
+        .finally(() => {
+          setIsLoadingSetUserInfo(false);
+        })
+    }
+  }, [loggedIn]);
+
+  useEffect(() => {
+    if(loggedIn) {
+      setIsLoadingInitialData(true);
+      api.getInitialCards()
+      .then(cardsData => {
+        setCards(cardsData)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      .finally(() => {
+        setIsLoadingInitialData(false);
+      })
+    }
+  }, [loggedIn]);
 
   function handleCardLike(card) {
-    const isLiked = card.likes.some(item => item._id === currentUser._id);
-    api.changeLikeCardStatus(card._id, !isLiked, token)
+    const isLiked = card.likes.some(item => item === currentUser._id);
+    api.changeLikeCardStatus(card._id, isLiked)
       .then((newCard) => {
         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
       })
@@ -90,9 +145,9 @@ function App() {
 
   function handleCardDelete(e) {
     e.preventDefault();
-    api.deleteCard(cardForDelete._id, token)
+    api.deleteCard(cardForDelete._id)
       .then(() => {
-        setCards(cards.filter(c => c._id !== cardForDelete._id))
+        setCards((state) => state.filter(c => c._id !== cardForDelete._id))
         closeAllPopups()
       })
       .catch((err) => {      
@@ -102,7 +157,7 @@ function App() {
 
   const handleUpdateUser = (data) => {
     setIsLoadingSetUserInfo(true);
-    api.patchUserData(data, token)
+    api.patchUserData(data)
       .then((res) => {
         setCurrentUser(res)
         closeAllPopups()
@@ -117,7 +172,7 @@ function App() {
 
   const handleUpdateAvatar = (data) => {
     setIsLoadingAvatarUpdate(true);
-    api.patchUserAvatar(data, token)
+    api.patchUserAvatar(data)
       .then((res) => {
         setCurrentUser(res)
         closeAllPopups()
@@ -132,7 +187,7 @@ function App() {
 
   const handleAddPlaceSubmit = (newCard) => {
     setIsLoadingAddPlaceSubmit(true);
-    api.postCard(newCard, token)
+    api.postCard(newCard)
       .then((res) => {
         setCards([res, ...cards]);
         closeAllPopups()
@@ -167,6 +222,12 @@ function App() {
     setIsConfirmPopupOpen(true);
   }
 
+  const closePopupByClickOutside = (e) => {
+    if(e.target.classList.contains('popup_is-opened')) {
+      closeAllPopups();
+    }
+  }
+
   const closeAllPopups = () => {
     setIsEditAvatarPopupOpen(false);
     setIsEditProfilePopupOpen(false);
@@ -175,45 +236,6 @@ function App() {
     setIsConfirmPopupOpen(false);
     setSelectedCard({});
     setIsInfoToolTipOpen(false);
-  }
-
-  const handleLogin = ({ email, password }) => {
-    return auth.authorize(email, password)
-      .then((data) => {
-        if (data.token) {
-          setUserEmail(email)
-          setLoggedIn(true)
-          localStorage.setItem('jwt', data.token)
-          history.push('/')
-          return;
-        }
-      })
-      .catch(err => {
-        console.log(err); 
-      });
-  }
-
-  const handleRegister = ({ email, password }) => {
-    return auth.register(email, password)
-      .then((res) => {
-        if (res.data._id) {
-          setTooltipStatus(true);
-          setIsInfoToolTipOpen(true);
-          history.push('/sign-in');
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        setTooltipStatus(false);
-        setIsInfoToolTipOpen(true);
-      });
-  }
-
-  const handleLogout = () => {
-    setLoggedIn(false);
-    localStorage.removeItem('jwt');
-    setToken('');
-    history.push('/sign-in');
   }
 
   return (
@@ -242,6 +264,9 @@ function App() {
           <Route path="/sign-in">
             <Login onLogin={handleLogin} onCheckToken={tokenCheck} />
           </Route>
+          <Route path="*">
+            <Redirect to="/" />
+          </Route>
         </Switch>
 
         <Footer />
@@ -249,6 +274,7 @@ function App() {
         <EditProfilePopup
           isOpen={isEditProfilePopupOpen}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
           onUpdateUser={handleUpdateUser}
           isLoadingData={isLoadingSetUserInfo}
           isLoadingInitialData={isLoadingInitialData}
@@ -257,6 +283,7 @@ function App() {
         <AddPlacePopup
           isOpen={isAddPlacePopupOpen}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
           onAddPlace={handleAddPlaceSubmit}
           isLoadingData={isLoadingAddPlaceSubmit}
         />
@@ -264,6 +291,7 @@ function App() {
         <EditAvatarPopup
           isOpen={isEditAvatarPopupOpen}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
           onUpdateAvatar={handleUpdateAvatar}
           isLoadingData={isLoadingAvatarUpdate}
         />
@@ -271,6 +299,7 @@ function App() {
         <ConfirmationPopup
           isOpen={isConfirmPopupOpen}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
           onSubmit={handleCardDelete}
         />
 
@@ -278,12 +307,14 @@ function App() {
           card={selectedCard}
           isOpen={isImagePopupOpen}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
         />
 
         <InfoTooltip
           name="tooltip"
           authStatus={tooltipStatus}
           onClose={closeAllPopups}
+          closePopupByClickOutside={closePopupByClickOutside}
           isOpen={isInfoToolTipOpen}
         />
 

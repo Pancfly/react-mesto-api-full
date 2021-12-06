@@ -8,7 +8,7 @@ function InfoTooltip(props) {
   const messageText = props.authStatus ? 'Вы успешно зарегистрировались!' : 'Что-то пошло не так! Попробуйте еще раз.';
 
   return (
-    <div className={`popup popup_type_${props.name} ${props.isOpen && 'popup_is-opened'}`}>
+    <div className={`popup popup_type_${props.name} ${props.isOpen && 'popup_is-opened'}`} onMouseUp={props.closePopupByClickOutside}>
       <div className="popup__container popup__container_align_center">
         <img src={messageIcon} alt={iconAlt} className="popup__image-status" />
         <h3 className="popup__massage">{messageText}</h3>
