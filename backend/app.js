@@ -2,6 +2,8 @@ const express = require('express');
 
 require('dotenv').config();
 
+const cookieParser = require('cookie-parser');
+
 const cors = require('cors');
 
 const { errors, celebrate, Joi } = require('celebrate');
@@ -14,7 +16,7 @@ const mongoose = require('mongoose', {
 });
 const errorHandler = require('./middlewares/errors');
 const auth = require('./middlewares/auth');
-const { createUser, login } = require('./controllers/user');
+const { createUser, login, logout } = require('./controllers/user');
 const userRouters = require('./routes/user');
 const cardRouters = require('./routes/card');
 
@@ -27,6 +29,7 @@ const app = express();
 const allowedCors = [
   'https://pancfly.students.nomoredomains.icu',
   'https://api.pancfly.students.nomoredomains.icu',
+  'https://localhost:3000',
   'http://localhost:3000',
 ];
 
@@ -37,6 +40,7 @@ app.use(cors({
 const mestodb = 'mongodb://localhost:27017/mestodb';
 const { PORT = 3000 } = process.env;
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -63,6 +67,7 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(5),
   }),
 }), createUser);
+app.get('/logout', logout);
 
 app.use(auth);
 

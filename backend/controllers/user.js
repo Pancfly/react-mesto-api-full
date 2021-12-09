@@ -8,7 +8,7 @@ const ConflictError = require('../errors/conflict-error');
 
 const { Ok200 } = require('../utils/constanta');
 
-const { NODE_ENV, JWT_SECRET} = process.env;
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUsers = (req, res, next) => {
   UserModel.find()
@@ -98,20 +98,13 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  UserModel.findOne({ email }).select('+password')
+  UserModel.findUserByCredentials(email, password)
     .orFail(new Error('IncorrectEmail'))
     .then((user) => {
-      bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            next(new BadRequestError('Указан некорректный Email или пароль.'));
-          } else {
-            const payload = { _id: user._id };
-            res.send({
-              token: jwt.sign(payload, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
-            });
-          }
-        });
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        maxAge: 3600000, httpOnly: true, sameSite: 'none', secure: true,
+      }).send({ token });
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmail') {
@@ -137,4 +130,10 @@ module.exports.getUserMe = (req, res, next) => {
         next(err);
       }
     });
+};
+
+module.exports.logout = (req, res) => {
+  res.clearCookie('jwt', {
+    httpOnly: true, sameSite: 'none', secure: true,
+  }).send({ message: 'Пользователь вышел из профиля' });
 };
