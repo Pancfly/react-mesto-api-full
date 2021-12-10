@@ -15,9 +15,6 @@ function Login({ onLogin }) {
   function handleSubmit(e) {
     e.preventDefault();
     onLogin(userData)
-      .catch(err => {
-        console.error(err)
-      })
   }
 
   return (

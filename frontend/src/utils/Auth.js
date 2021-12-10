@@ -15,7 +15,7 @@ class Auth {
     return fetch(`${this._url}/signup`, {
       method: 'POST',
       headers: this._headers,
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ "email": email, "password": password })
     })
     .then(this._handleOriginalResponse)
   }
@@ -24,15 +24,20 @@ class Auth {
     return fetch(`${this._url}/signin`, {
       method: 'POST',
       headers: this._headers,
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ "email": email, "password": password })
     })
-    .then(this._handleOriginalResponse);
+    .then(this._handleOriginalResponse)
+    .then((data) => {
+      if (data) {
+        localStorage.setItem('jwt', data.token);
+        return data;
+      }
+    })
   }
 
   checkToken(token) {
     return fetch(`${this._url}/users/me`, {
       method: 'GET',
-      credentials: 'include',
       headers: { ...this._headers, Authorization: `Bearer ${token}`},
     })
     .then(this._handleOriginalResponse)
@@ -42,7 +47,6 @@ class Auth {
 const auth = new Auth({
   url: 'https://api.pancfly.students.nomoredomains.rocks',
   headers: {
-    'Accept': 'application/json',
     'Content-Type': 'application/json'
   }
 })

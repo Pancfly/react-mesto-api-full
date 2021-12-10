@@ -14,7 +14,6 @@ class Api {
     getInitialCards() {
         return fetch(`${this._url}/cards`, {
             method: 'GET',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
@@ -23,7 +22,6 @@ class Api {
     getUserData() {
         return fetch(`${this._url}/users/me`, {
             method: 'GET',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
@@ -32,7 +30,6 @@ class Api {
     patchUserData(data) {
         return fetch(`${this._url}/users/me`, {
             method: 'PATCH',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 name: data.name,
@@ -45,7 +42,6 @@ class Api {
     patchUserAvatar(data) {
         return fetch(`${this._url}/users/me/avatar`, {
             method: 'PATCH',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 avatar: data.avatar
@@ -57,7 +53,6 @@ class Api {
     postCard(data) {
         return fetch(`${this._url}/cards`, {
             method: 'POST',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
             body: JSON.stringify({
                 name: data.name,
@@ -70,7 +65,6 @@ class Api {
     deleteCard(id) {
         return fetch(`${this._url}/cards/${id}`, {
             method: 'DELETE',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
@@ -79,7 +73,6 @@ class Api {
     changeLikeCardStatus(id, isLiked) {
         return fetch(`${this._url}/cards/likes/${id}`, {
             method: isLiked ? 'PUT' : 'DELETE',
-            credentials: 'include',
             headers: { ...this._headers, Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
         .then(this._getResponse);
@@ -89,7 +82,6 @@ class Api {
 const api = new Api({
     url: 'https://api.pancfly.students.nomoredomains.rocks',
     headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
 });

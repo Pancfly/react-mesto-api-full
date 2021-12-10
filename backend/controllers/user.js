@@ -11,9 +11,9 @@ const { Ok200 } = require('../utils/constanta');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUsers = (req, res, next) => {
-  UserModel.find()
+  UserModel.find({})
     .then((data) => {
-      res.status(Ok200).send(data);
+      res.status(Ok200).send({ data });
     })
     .catch(next);
 };
@@ -62,7 +62,7 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  UserModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  UserModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(new Error('NotValidId'))
     .then((user) => {
       res.status(Ok200).send(user);
@@ -80,7 +80,7 @@ module.exports.updateProfile = (req, res, next) => {
 
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  UserModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  UserModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(new Error('NotValidId'))
     .then((user) => {
       res.status(Ok200).send(user);
@@ -98,13 +98,25 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  UserModel.findUserByCredentials(email, password)
+  UserModel.findOne({ email }).select('+password')
     .orFail(new Error('IncorrectEmail'))
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-      res.cookie('jwt', token, {
-        maxAge: 3600000, httpOnly: true, sameSite: 'none', secure: true,
-      }).send({ token });
+      bcrypt.compare(password, user.password, ((err, isValid) => {
+        if (err || !isValid) {
+          return next(new BadRequestError('Указан некорректный Email или пароль.'));
+        }
+        if (isValid) {
+          const token =jwt.sign(
+            { _id: user._id },
+            'JWT_SECRET',
+            { expiresIn: '7d' },
+          );
+          res.cookie('jwt', token, {
+            httpOnly: true,
+            sameSite: true,
+          }).status(Ok200).send({ token: `${token}` });
+        }
+      }));
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmail') {
@@ -119,7 +131,7 @@ module.exports.getUserMe = (req, res, next) => {
   UserModel.findById(req.user._id)
     .orFail(new Error('NotValidId'))
     .then((user) => {
-      res.send(user);
+      res.status(Ok200).send(user);
     })
     .catch((err) => {
       if (err.message === 'NotValidId') {
@@ -130,10 +142,4 @@ module.exports.getUserMe = (req, res, next) => {
         next(err);
       }
     });
-};
-
-module.exports.logout = (req, res) => {
-  res.clearCookie('jwt', {
-    httpOnly: true, sameSite: 'none', secure: true,
-  }).send({ message: 'Пользователь вышел из профиля' });
 };

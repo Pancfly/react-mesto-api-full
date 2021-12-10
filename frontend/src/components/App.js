@@ -38,17 +38,13 @@ function App() {
   const [isLoadingAddPlaceSubmit, setIsLoadingAddPlaceSubmit] = useState(false);
   const [isLoadingAvatarUpdate, setIsLoadingAvatarUpdate] = useState(false);
 
-  useEffect(() => {
-    tokenCheck()
-  }, []);
-
   const tokenCheck = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('twt');
     if (token) {
       auth.checkToken(token)
       .then((res) => {
-        if(res.email) {
-          setUserEmail(res.email);
+        if(res) {
+          setUserEmail(res.data.email);
           setLoggedIn(true);
           history.push('/');
         }
@@ -59,10 +55,24 @@ function App() {
     }
   };
 
+  function componentDidMount() {
+    tokenCheck();
+  }
+
+  function handleSignIn() {
+    setLoggedIn(true);
+  }
+
+  useEffect(() => {
+    componentDidMount();
+  }, []);
+
+  const history = useHistory();
+
   const handleRegister = (email, password) => {
     return auth.register(email, password)
       .then((res) => {
-        if (res.email) {
+        if (res) {
           setTooltipStatus(true);
           setIsInfoToolTipOpen(true);
           setTimeout(() => {
@@ -81,8 +91,7 @@ function App() {
   const handleLogin = (email, password) => {
     return auth.authorize(email, password)
       .then((res) => {
-        if (res.token) {
-          localStorage.setItem('token', res.token)
+        if (res) {
           setUserEmail(email)
           setLoggedIn(true)
           history.push('/')
@@ -94,7 +103,7 @@ function App() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('jwt');
     setLoggedIn(false);
     setUserEmail('');
     history.push('/sign-in');
@@ -133,7 +142,7 @@ function App() {
   }, [loggedIn]);
 
   function handleCardLike(card) {
-    const isLiked = card.likes.some(item => item === currentUser._id);
+    const isLiked = card.likes.some(item => item._id === currentUser._id);
     api.changeLikeCardStatus(card._id, isLiked)
       .then((newCard) => {
         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
@@ -262,10 +271,12 @@ function App() {
           </Route>
 
           <Route path="/sign-in">
-            <Login onLogin={handleLogin} onCheckToken={tokenCheck} />
+            <Login onLogin={handleLogin} onSubmit={handleSignIn} />
           </Route>
-          <Route path="*">
-            <Redirect to="/" />
+          <Route path="/">
+            {loggedIn ?
+              <Redirect to="/main" /> :
+              <Redirect to="./sign-up" />}
           </Route>
         </Switch>
 
