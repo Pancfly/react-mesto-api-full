@@ -40,24 +40,25 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10)
     .then((hash) => UserModel.create({
       name, about, avatar, email, password: hash,
-    }))
-    .then((user) => {
-      res.status(Ok200).send({
-        id: user._id, email: user.email, name: user.name, abote: user.aboute, avatar: user.avatar,
-      });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
-      } else if (err.code === 11000) {
-        next(new ConflictError('Пользователь с таким email уже существует.'));
-      } else {
-        next(err);
-      }
-    });
+      .then((user) => {
+        res.status(Ok200).send({
+          id: user._id, email: user.email, name: user.name, abote: user.aboute, avatar: user.avatar,
+        });
+      })
+      .catch((err) => {
+        if (err.name === 'ValidationError' || err.name === 'CastError') {
+          next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
+        } else if (err.code === 11000) {
+          next(new ConflictError('Пользователь с таким email уже существует.'));
+        } else {
+          next(err);
+        }
+      })
+    );
 };
 
 module.exports.updateProfile = (req, res, next) => {
@@ -98,20 +99,13 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  UserModel.findOne({ email }).select('+password')
+  UserModel.findUserByCredentials(email, password)
     .orFail(new Error('IncorrectEmail'))
     .then((user) => {
-      bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            next(new BadRequestError('Указан некорректный Email или пароль.'));
-          } else {
-            const payload = { _id: user._id };
-            res.send({
-              token: jwt.sign(payload, secret, { expiresIn: '7d' }),
-            });
-          }
-        });
+      const payload = { _id: user._id };
+      res.send({
+        token: jwt.sign(payload, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
+      });
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmail') {
