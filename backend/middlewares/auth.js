@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
+
 const NotAuthError = require('../errors/not-auth-error');
+
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports = (req, res, next) => {

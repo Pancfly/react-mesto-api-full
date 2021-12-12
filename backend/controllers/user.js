@@ -40,25 +40,24 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  return bcrypt.hash(password, 10)
+  bcrypt.hash(password, 10)
     .then((hash) => UserModel.create({
       name, about, avatar, email, password: hash,
+    }))
+    .then((user) => {
+      res.status(Ok200).send({
+        id: user._id, email: user.email, name: user.name, abote: user.aboute, avatar: user.avatar,
+      });
     })
-      .then((user) => {
-        res.status(Ok200).send({
-          id: user._id, email: user.email, name: user.name, abote: user.aboute, avatar: user.avatar,
-        });
-      })
-      .catch((err) => {
-        if (err.name === 'ValidationError' || err.name === 'CastError') {
-          next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
-        } else if (err.code === 11000) {
-          next(new ConflictError('Пользователь с таким email уже существует.'));
-        } else {
-          next(err);
-        }
-      })
-    );
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя.'));
+      } else if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже существует.'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.updateProfile = (req, res, next) => {
@@ -120,7 +119,7 @@ module.exports.getUserMe = (req, res, next) => {
   UserModel.findById(req.user._id)
     .orFail(new Error('NotValidId'))
     .then((user) => {
-      res.status(Ok200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.message === 'NotValidId') {

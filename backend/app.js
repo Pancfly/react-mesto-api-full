@@ -4,6 +4,8 @@ require('dotenv').config();
 
 const { errors, celebrate, Joi } = require('celebrate');
 
+const cors = require('./middlewares/cors-config');
+
 const mongoose = require('mongoose', {
   useUnifiedTopology: true,
   useNewUrlParser: true,
@@ -22,37 +24,12 @@ const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
 
-const allowedCors = [
-  'https://pancfly.students.nomoredomains.icu',
-  'https://api.pancfly.students.nomoredomains.icu',
-  'https://localhost:3000',
-  'http://localhost:3000',
-  'localhost:3000',
-];
-
 const mestodb = 'mongodb://localhost:27017/mestodb';
 const { PORT = 3000 } = process.env;
 
 app.use(express.json());
 app.use(requestLogger);
-
-// eslint-disable-next-line func-names
-app.use(function (req, res, next) {
-  const { origin } = req.headers;
-  if (allowedCors.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', true);
-  }
-  const { method } = req;
-  const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
-  const requestHeaders = req.headers['access-control-request-headers'];
-  if (method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
-    res.header('Access-Control-Allow-Headers', requestHeaders);
-    res.status(200).send({ message: 'OK' });
-  }
-  next();
-});
+app.use(cors);
 
 app.get('/crash-test', () => {
   setTimeout(() => {
