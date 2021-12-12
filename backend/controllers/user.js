@@ -11,9 +11,9 @@ const { Ok200 } = require('../utils/constanta');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUsers = (req, res, next) => {
-  UserModel.find({})
+  UserModel.find()
     .then((data) => {
-      res.status(Ok200).send({ data });
+      res.status(Ok200).send(data);
     })
     .catch(next);
 };
@@ -62,7 +62,7 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
-  UserModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+  UserModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .orFail(new Error('NotValidId'))
     .then((user) => {
       res.status(Ok200).send(user);
@@ -80,7 +80,7 @@ module.exports.updateProfile = (req, res, next) => {
 
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  UserModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+  UserModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .orFail(new Error('NotValidId'))
     .then((user) => {
       res.status(Ok200).send(user);
@@ -98,25 +98,13 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  UserModel.findOne({ email }).select('+password')
+  UserModel.findUserByCredentials(email, password)
     .orFail(new Error('IncorrectEmail'))
     .then((user) => {
-      bcrypt.compare(password, user.password, ((err, isValid) => {
-        if (err || !isValid) {
-          return next(new BadRequestError('Указан некорректный Email или пароль.'));
-        }
-        if (isValid) {
-          const token =jwt.sign(
-            { _id: user._id },
-            'JWT_SECRET',
-            { expiresIn: '7d' },
-          );
-          res.cookie('jwt', token, {
-            httpOnly: true,
-            sameSite: true,
-          }).status(Ok200).send({ token: `${token}` });
-        }
-      }));
+      const payload = { _id: user._id };
+      res.send({
+        token: jwt.sign(payload, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
+      });
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmail') {

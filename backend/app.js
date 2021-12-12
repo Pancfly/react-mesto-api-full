@@ -2,14 +2,6 @@ const express = require('express');
 
 require('dotenv').config();
 
-const helmet = require('helmet');
-
-const rateLimit = require('express-rate-limit');
-
-const cookieParser = require('cookie-parser');
-
-const cors = require('cors');
-
 const { errors, celebrate, Joi } = require('celebrate');
 
 const mongoose = require('mongoose', {
@@ -41,16 +33,8 @@ const allowedCors = [
 const mestodb = 'mongodb://localhost:27017/mestodb';
 const { PORT = 3000 } = process.env;
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-
-app.use(limiter);
 app.use(express.json());
-app.use(helmet());
 app.disable('x-power-by');
-app.use(cookieParser());
 app.use(requestLogger);
 
 app.get('/crash-test', () => {
@@ -95,12 +79,15 @@ app.use(function (req, res, next) {
   const { origin } = req.headers;
   if (allowedCors.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', true);
   }
   const { method } = req;
   const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
+  const requestHeaders = req.headers['access-control-request-headers'];
   if (method === 'OPTIONS') {
     res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
-    return res.end();
+    res.header('Access-Control-Allow-Headers', requestHeaders);
+    res.status(200).send({ message: 'OK' });
   }
   next();
 });

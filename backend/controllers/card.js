@@ -7,9 +7,9 @@ const ForbiddenError = require('../errors/forbidden-error');
 const { Ok200 } = require('../utils/constanta');
 
 module.exports.getCards = (req, res, next) => {
-  CardModel.find({})
+  CardModel.find()
     .then((data) => {
-      res.status(Ok200).send({ data });
+      res.status(Ok200).send(data);
     })
     .catch(next);
 };

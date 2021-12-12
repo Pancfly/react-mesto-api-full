@@ -67,8 +67,6 @@ function App() {
     componentDidMount();
   }, []);
 
-  const history = useHistory();
-
   const handleRegister = (email, password) => {
     return auth.register(email, password)
       .then((res) => {
