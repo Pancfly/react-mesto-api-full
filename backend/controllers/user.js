@@ -98,13 +98,20 @@ module.exports.updateAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  UserModel.findUserByCredentials(email, password)
+  UserModel.findOne({ email }).select('+password')
     .orFail(new Error('IncorrectEmail'))
     .then((user) => {
-      const payload = { _id: user._id };
-      res.send({
-        token: jwt.sign(payload, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
-      });
+      bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            next(new BadRequestError('Указан некорректный Email или пароль.'));
+          } else {
+            const payload = { _id: user._id };
+            res.send({
+              token: jwt.sign(payload, secret, { expiresIn: '7d' }),
+            });
+          }
+        });
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmail') {

@@ -56,7 +56,7 @@ function App() {
   }, [history]);
 
   const handleRegister = (email, password) => {
-    return auth.register(email, password)
+    auth.register(email, password)
       .then((res) => {
         if (res) {
           setTooltipStatus(true);
@@ -75,7 +75,7 @@ function App() {
   }
 
   const handleLogin = (email, password) => {
-    return auth.authorize(email, password)
+    auth.authorize(email, password)
       .then((res) => {
         if (res) {
           setUserEmail(email);

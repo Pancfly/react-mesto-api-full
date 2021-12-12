@@ -34,7 +34,6 @@ const mestodb = 'mongodb://localhost:27017/mestodb';
 const { PORT = 3000 } = process.env;
 
 app.use(express.json());
-app.disable('x-power-by');
 app.use(requestLogger);
 
 // eslint-disable-next-line func-names
