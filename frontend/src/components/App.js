@@ -55,10 +55,6 @@ function App() {
     }
   }, [history]);
 
-  function handleSignIn() {
-    setLoggedIn(true);
-  }
-
   const handleRegister = (email, password) => {
     return auth.register(email, password)
       .then((res) => {
@@ -263,7 +259,7 @@ function App() {
           </Route>
 
           <Route path="/sign-in">
-            <Login onLogin={handleLogin} onSubmit={handleSignIn} />
+            <Login onLogin={handleLogin} />
           </Route>
           <Route path="/">
             {loggedIn ?

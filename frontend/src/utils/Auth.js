@@ -15,7 +15,7 @@ class Auth {
     return fetch(`${this._url}/signup`, {
       method: 'POST',
       headers: this._headers,
-      body: JSON.stringify({ "email": email, "password": password })
+      body: JSON.stringify({ email, password })
     })
     .then(this._handleOriginalResponse)
   }
@@ -24,7 +24,7 @@ class Auth {
     return fetch(`${this._url}/signin`, {
       method: 'POST',
       headers: this._headers,
-      body: JSON.stringify({ "email": email, "password": password })
+      body: JSON.stringify({ email, password })
     })
     .then(this._handleOriginalResponse)
     .then((data) => {
