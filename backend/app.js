@@ -37,6 +37,24 @@ app.use(express.json());
 app.disable('x-power-by');
 app.use(requestLogger);
 
+// eslint-disable-next-line func-names
+app.use(function (req, res, next) {
+  const { origin } = req.headers;
+  if (allowedCors.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', true);
+  }
+  const { method } = req;
+  const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
+  const requestHeaders = req.headers['access-control-request-headers'];
+  if (method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
+    res.header('Access-Control-Allow-Headers', requestHeaders);
+    res.status(200).send({ message: 'OK' });
+  }
+  next();
+});
+
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Сервер сейчас упадёт');
@@ -73,24 +91,6 @@ app.use(errorLogger);
 app.use(errors());
 
 app.use(errorHandler);
-
-// eslint-disable-next-line func-names
-app.use(function (req, res, next) {
-  const { origin } = req.headers;
-  if (allowedCors.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Credentials', true);
-  }
-  const { method } = req;
-  const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
-  const requestHeaders = req.headers['access-control-request-headers'];
-  if (method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
-    res.header('Access-Control-Allow-Headers', requestHeaders);
-    res.status(200).send({ message: 'OK' });
-  }
-  next();
-});
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

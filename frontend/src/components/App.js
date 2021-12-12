@@ -38,13 +38,13 @@ function App() {
   const [isLoadingAddPlaceSubmit, setIsLoadingAddPlaceSubmit] = useState(false);
   const [isLoadingAvatarUpdate, setIsLoadingAvatarUpdate] = useState(false);
 
-  const tokenCheck = () => {
+  useEffect(() => {
     const token = localStorage.getItem('twt');
     if (token) {
       auth.checkToken(token)
       .then((res) => {
         if(res) {
-          setUserEmail(res.data.email);
+          setUserEmail(res.email);
           setLoggedIn(true);
           history.push('/');
         }
@@ -53,19 +53,11 @@ function App() {
         console.log(err)
       })
     }
-  };
-
-  function componentDidMount() {
-    tokenCheck();
-  }
+  }, [history]);
 
   function handleSignIn() {
     setLoggedIn(true);
   }
-
-  useEffect(() => {
-    componentDidMount();
-  }, []);
 
   const handleRegister = (email, password) => {
     return auth.register(email, password)
@@ -90,9 +82,9 @@ function App() {
     return auth.authorize(email, password)
       .then((res) => {
         if (res) {
-          setUserEmail(email)
-          setLoggedIn(true)
-          history.push('/')
+          setUserEmail(email);
+          setLoggedIn(true);
+          history.push('/');
         }
       })
       .catch(err => {
@@ -110,7 +102,8 @@ function App() {
   useEffect(() => {
     if(loggedIn){
       setIsLoadingSetUserInfo(true);
-      api.getUserData()
+      const token = localStorage.getItem('twt');
+      api.getUserData(token)
         .then(userData => {
           setCurrentUser(userData);
         })
@@ -126,7 +119,8 @@ function App() {
   useEffect(() => {
     if(loggedIn) {
       setIsLoadingInitialData(true);
-      api.getInitialCards()
+      const token = localStorage.getItem('twt');
+      api.getInitialCards(token)
       .then(cardsData => {
         setCards(cardsData)
       })

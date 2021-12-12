@@ -28,9 +28,9 @@ class Auth {
     })
     .then(this._handleOriginalResponse)
     .then((data) => {
-      if (data) {
+      if (data.token) {
         localStorage.setItem('jwt', data.token);
-        return data;
+        return data
       }
     })
   }
@@ -47,7 +47,8 @@ class Auth {
 const auth = new Auth({
   url: 'https://api.pancfly.students.nomoredomains.rocks',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
   }
 })
 
