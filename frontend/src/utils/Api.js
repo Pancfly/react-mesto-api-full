@@ -11,24 +11,18 @@ class Api {
         return Promise.reject(`Внимание! Ошибка: ${res.status}`)
     }
 
-    getInitialCards(token) {
+    getInitialCards() {
         return fetch(`${this._url}/cards`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': `Bearer ${token}`
-            }
+            headers: this._headers,
         })
         .then(this._getResponse);
     }
 
-    getUserData(token) {
+    getUserData() {
         return fetch(`${this._url}/users/me`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': `Bearer ${token}`
-            }
+            headers: this._headers,
         })
         .then(this._getResponse);
     }
@@ -77,7 +71,7 @@ class Api {
     }
 
     changeLikeCardStatus(id, isLiked) {
-        return fetch(`${this._url}/cards/likes/${id}`, {
+        return fetch(`${this._url}/cards/${id}/likes`, {
             method: isLiked ? 'PUT' : 'DELETE',
             headers: this._headers,
         })
