@@ -32,15 +32,13 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  CardModel.findByIdAndRemove(cardId)
+  CardModel.findById(cardId)
     .orFail(new Error('NotValidId'))
     .then((card) => {
       if (card.owner.toString() === req.user._id.toString()) {
-        card.remove();
-        res.status(Ok200).send({ message: 'Карточка удалена!' });
-      } else {
-        throw new ForbiddenError('Это карточка не ваша, у вас нет прав!');
+        return card.remove().then(() => res.status(Ok200).send({ message: 'Карточка удалена!' }));
       }
+      throw new ForbiddenError('Это карточка не ваша, у вас нет прав!');
     })
     .catch((err) => {
       if (err.name === 'CastError') {

@@ -1,6 +1,6 @@
 const allowedCors = [
-  'https://pancfly.students.nomoredomains.icu',
-  'http://pancfly.students.nomoredomains.icu',
+  'https://pancfly.student.nomoredomains.rocks',
+  'http://pancfly.student.nomoredomains.rocks',
   'https://localhost:3000',
   'http://localhost:3000',
   'localhost:3000',

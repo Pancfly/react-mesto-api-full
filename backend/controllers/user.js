@@ -5,6 +5,7 @@ const UserModel = require('../models/user');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ConflictError = require('../errors/conflict-error');
+const NotAuthError = require('../errors/not-auth-error');
 
 const { Ok200 } = require('../utils/constanta');
 
@@ -99,19 +100,14 @@ module.exports.updateAvatar = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   UserModel.findUserByCredentials(email, password)
-    .orFail(new Error('IncorrectEmail'))
     .then((user) => {
       const payload = { _id: user._id };
       res.send({
         token: jwt.sign(payload, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' }),
       });
     })
-    .catch((err) => {
-      if (err.message === 'IncorrectEmail') {
-        next(new BadRequestError('Указан некорректный Email или пароль.'));
-      } else {
-        next(err);
-      }
+    .catch(() => {
+      next(new NotAuthError('Указан некорректный Email или пароль.'));
     });
 };
 

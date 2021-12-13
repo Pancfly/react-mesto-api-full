@@ -5,7 +5,7 @@ const {
 } = require('../controllers/user');
 
 router.get('/users', getUsers);
-router.get('/user/me', getUserMe);
+router.get('/users/me', getUserMe);
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
     userId: Joi.string().hex().length(24).required(),
