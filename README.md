@@ -4,4 +4,4 @@
 [Сайт](https://pancfly.student.nomoredomains.rocks/sign-in)
 
 `ip server: 51.250.28.53`
-`api: [https://api.pancfly.students.nomoredomains.rocks] (https://api.pancfly.students.nomoredomains.rocks)`
+`api: https://api.pancfly.students.nomoredomains.rocks`
